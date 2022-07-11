@@ -1,0 +1,116 @@
+import java.awt.event.ActionEvent; import java.awt.event.ActionListener; import javax.swing.JButton;
+import javax.swing.JFrame; import javax.swing.JLabel; import javax.swing.JPanel; import javax.swing.JTextPane;
+
+public class MyFrame extends JFrame {
+
+
+public MyFrame() { super("Encrypt_Testing"); setBounds(100, 100, 600, 900);
+setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); getContentPane().setLayout(null);
+// PlainText Panel
+JPanel plainPanel = new JPanel(); plainPanel.setBounds(0, 0, 584, 287); getContentPane().add(plainPanel); plainPanel.setLayout(null);
+// PlainPane -> data setting -> final!
+final JTextPane PlainPane = new JTextPane(); PlainPane.setBounds(12, 29, 560, 166); plainPanel.add(PlainPane);
+// PlainText Label
+JLabel PlaintextLabel = new JLabel("PlainText");
+
+PlaintextLabel.setBounds(12, 10, 57, 15); plainPanel.add(PlaintextLabel);
+// CipherText Panel
+JPanel cipherPanel = new JPanel(); cipherPanel.setBounds(0, 284, 584, 287); getContentPane().add(cipherPanel); cipherPanel.setLayout(null);
+// CipherText Label
+JLabel CipherLabel = new JLabel("CipherText"); CipherLabel.setBounds(12, 10, 70, 15); cipherPanel.add(CipherLabel);
+// CipherPane -> data setting -> final!
+final JTextPane CipherPane = new JTextPane(); CipherPane.setBounds(12, 27, 560, 188); cipherPanel.add(CipherPane);
+// Decipher Panel
+JPanel decipherPanel = new JPanel(); decipherPanel.setBounds(0, 570, 584, 292); getContentPane().add(decipherPanel); decipherPanel.setLayout(null);
+// Decipher Label
+JLabel DecipherLabel = new JLabel("DecipherText"); DecipherLabel.setBounds(12, 10, 81, 24); decipherPanel.add(DecipherLabel);
+// Decipher TextPane
+final JTextPane DecipherPane = new JTextPane(); DecipherPane.setBounds(12, 36, 560, 208); decipherPanel.add(DecipherPane);
+
+// Decryption Button
+JButton DecryptedButton = new JButton("Decryption"); DecryptedButton.addActionListener(new ActionListener() {
+public void actionPerformed(ActionEvent arg0) { String cipher, result_de;
+
+try {
+cipher = CipherPane.getText();
+result_de = FileEncryption.decryptString(cipher); DecipherPane.setText(result_de);
+} catch (Exception e) { e.printStackTrace();
+}
+}
+});
+DecryptedButton.setBounds(448, 240, 124, 23); cipherPanel.add(DecryptedButton); setVisible(true);
+// Encryption Button
+JButton EncryptedButton = new JButton("Encryption"); EncryptedButton.addActionListener(new ActionListener() {
+public void actionPerformed(ActionEvent arg0) {
+// PlainArea -> GetText! -> Plain
+// call encryptString(plain)
+// result <- FileEncryption.encryptString(plain)
+// CipherPane.setText(result)-> Show! String plain, result_en;
+try {
+plain = PlainPane.getText();
+result_en = FileEncryption.encryptString(plain); CipherPane.setText(result_en);
+} catch (Exception e) {
+// TODO Auto-generated catch block e.printStackTrace();
+}
+}
+});
+EncryptedButton.setBounds(445, 226, 127, 23); plainPanel.add(EncryptedButton);
+
+}
+
+
+public static void main(String args[]) { new MyFrame();
+}
+}
+The above source code will import the file encryption code which gives the frame for the encryption and decryption process.
+import java.io.ByteArrayInputStream; import java.io.ByteArrayOutputStream; import javax.crypto.Cipher;
+import javax.crypto.CipherInputStream; import javax.crypto.CipherOutputStream; import javax.crypto.spec.IvParameterSpec; import javax.crypto.spec.SecretKeySpec;
+
+public class FileEncryption {
+
+
+// Initial Vector
+public static final byte[] iv = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+
+// EncryptAndDecrypt String -> Input : PlainText + Return :
+// CipherText+DecipherText
+public static String encryptString(String src) throws Exception { String dst = "";
+// Not Input!
+if (src == null || src.length() == 0) return "";
+
+// Encryption Setting
+byte[] k = "Multimediaproces".getBytes(); SecretKeySpec Key = new SecretKeySpec(k, "AES"); IvParameterSpec ivspec = new IvParameterSpec(iv);
+
+Cipher encryptCipher = Cipher.getInstance("AES/CBC/PKCS5Padding"); encryptCipher.init(Cipher.ENCRYPT_MODE, Key, ivspec);
+
+ByteArrayOutputStream baos = new ByteArrayOutputStream(); CipherOutputStream cout = new CipherOutputStream(baos, encryptCipher); cout.write(src.getBytes());
+cout.flush(); // ByteOutputStream -> Write Encryption Text cout.close();
+dst = new String(baos.toByteArray()); return dst;
+}
+
+
+// String src -> EncryptedData
+public static String decryptString(String src) throws Exception {
+// src value is Encrypted Value!
+// So, src value -> Not Byte! String dst = "";
+byte[] encryptedBytes = src.getBytes();
+// Not Input!
+if (src == null || src.length() == 0) return "";
+// Decryption Setting
+IvParameterSpec ivspec = new IvParameterSpec(iv); byte[] k = "Multimediaproces".getBytes(); SecretKeySpec Key = new SecretKeySpec(k, "AES");
+Cipher decryptCipher = Cipher.getInstance("AES/CBC/PKCS5Padding"); decryptCipher.init(Cipher.DECRYPT_MODE, Key, ivspec);
+
+ByteArrayOutputStream baos = new ByteArrayOutputStream(); ByteArrayInputStream bais = new ByteArrayInputStream(encryptedBytes); CipherInputStream cin = new CipherInputStream(bais, decryptCipher); byte[] buf = new byte[1024];
+int read;
+while ((read = cin.read(buf)) >= 0) // reading encrypted data!
+
+{
+baos.write(buf, 0, read); // writing decrypted data!
+}
+
+
+// closing streams cin.close();
+dst = new String(baos.toByteArray()); return dst;
+}
+}
